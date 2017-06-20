@@ -1,0 +1,124 @@
+<template id="loading-dialog">
+    <style type="text/css">
+        :host {
+            display: none;
+        }
+    </style>
+</template>
+<template id="loading-dialog-box">
+    <style type="text/css">
+        :host {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(100,100,100,.2);
+            color: #fff;
+            text-shadow:
+                    -1px -1px 1px #555,
+                     0   -1px 1px #555,
+                    -1px  0   1px #555,
+                     1px  1px 1px #555,
+                    -1px  1px 1px #555,
+                     1px -1px 1px #555,
+                     0    1px 1px #555,
+                     1px  0   1px #555;
+
+            font-weight: bolder;
+            font-size: 3em;
+            user-select: none;
+            cursor: default;
+        }
+        :host > div {
+            display: table;
+            width: 100%;
+            height: 100%;
+            text-align: center;
+        }
+        :host > div > span {
+            display: table-cell;
+            vertical-align: middle;
+        }
+    </style>
+    <div>
+        <span><slot>Cargando...</slot></span>
+    </div>
+</template>
+<style type="text/css">
+    .loading-dialog-parent {
+        filter: blur(7px);
+        z-index: -1;
+    }
+</style>
+<script type="application/javascript">
+    (()=>{
+        const thisDocument = (document._currentScript || document.currentScript).ownerDocument;
+        requirejs(
+            ["jquery", "ComponentsManager"],
+            ($, {register, Utils}) => {
+                register({
+                    name : "loading-dialog"
+                });
+
+                const template = thisDocument.getElementById('loading-dialog');
+                const boxTemplate = thisDocument.getElementById('loading-dialog-box');
+
+                window.customElements.define('loading-dialog', class extends HTMLElement {
+                    constructor() {
+                        super();
+
+                        Utils.setupCustomElementFromTemplate(template, this);
+
+                        this._parent = null;
+                        this._dialog = null;
+                        this._timer = null;
+                    }
+                    connectedCallback() {
+                        if(this._timer)
+                            clearTimeout(this._timer);
+
+                        this._timer = setTimeout(()=>{
+                            this._timer = null;
+
+                            this._parent = this.parentNode;
+
+                            $(this._parent).addClass("loading-dialog-parent");
+
+                            this._dialog = document.createElement("div");
+                            Utils.setupCustomElementFromTemplate(boxTemplate, this._dialog);
+
+                            Array.from(this.childNodes).forEach(node => {
+                                this._dialog.appendChild(node);
+                            });
+
+                            this._parent.parentNode.appendChild(this._dialog);
+                        }, 500);
+                    }
+                    disconnectedCallback() {
+                        if(this._timer) {
+                            clearTimeout(this._timer);
+                            this._timer = null;
+                        }
+
+                        if(!this._parent)
+                            return;
+
+                        $(this._parent).removeClass("loading-dialog-parent");
+
+                        const parent = this._parent;
+
+                        this._parent = null;
+
+                        if(!this._dialog)
+                            return;
+
+                        parent.parentNode.removeChild(this._dialog);
+
+                        this._dialog = null;
+                    }
+                });
+            }
+        );
+    })();
+</script>

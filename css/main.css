@@ -95,7 +95,15 @@ textarea {
    Author's custom styles
    ========================================================================== */
 
-
+.no-js-prompt {
+    width: 400px;
+    margin: 0.2em auto;
+    background: #ebe4a8;
+    color: #cc0021;
+    padding: 1em;
+    font-weight: bolder;
+    border: #cf0012 2px solid;
+}
 
 
 

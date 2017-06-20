@@ -1,32 +1,24 @@
 <!doctype html>
-<html class="no-js" lang="" style="display: table;height: 100%;text-align: center;width: 100%;">
+<html lang="" style="display: table;height: 100%;text-align: center;width: 100%;">
     <head>
         <meta charset="utf-8">
         <meta http-equiv="x-ua-compatible" content="ie=edge">
-        <title></title>
+        <title>My Personal Updates</title>
         <meta name="description" content="">
         <meta name="viewport" content="width=device-width, initial-scale=1">
 
         <link rel="stylesheet" href="css/normalize.css">
         <link rel="stylesheet" href="css/main.css">
-        <script src="js/vendor/modernizr-2.8.3.min.js"></script>
     </head>
     <body style="display: table-cell; vertical-align: middle; margin: 2em auto;">
-        <!--[if lt IE 8]>
-            <p class="browserupgrade">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> to improve your experience.</p>
-        <![endif]-->
+        <noscript>
+            <p class="no-js-prompt">
+                Parece que tienes JavaScript desactivado.<br>Por favor, actívalo para poder usar esta aplicación.
+            </p>
+        </noscript>
 
-        <input type="text" id="username" placeholder="Usuario"><br>
-        <input type="password" id="password" placeholder="Contraseña"><br><br>
-        <button id="signup">Registro</button>
-        <button id="login">Inicio de sesion</button>
-        <button id="logout">Cierre de sesion</button><br><br>
-        <button id="authTest">Prueba de usuario conectado</button><br><br>
-        <p>Ver resultados en la consola.</p>
-
-        <script src="https://code.jquery.com/jquery-1.12.0.min.js"></script>
-        <script>window.jQuery || document.write('<script src="js/vendor/jquery-1.12.0.min.js"><\/script>')</script>
-        <script src="js/plugins.js"></script>
-        <script src="js/main.js"></script>
+        <script src="/js/3rd-party/webcomponents/webcomponents-loader.js"></script>
+        <script src="/js/3rd-party/require.js"></script>
+        <script src="/js/frontend/main.js"></script>
     </body>
 </html>

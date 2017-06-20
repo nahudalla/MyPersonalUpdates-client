@@ -1,0 +1,77 @@
+<template id="signup-dialog">
+    <style type="text/css">
+        :host {
+            display: block;
+            contain: content;
+        }
+    </style>
+    <form id="signupForm">
+        <h1>Crear Usuario</h1><br>
+        <input type="text" name="user" placeholder="Usuario"><br>
+        <input type="password" name="password" placeholder="Contraseña"><br>
+        <input type="submit" value="Crear usuario"><br>
+        <a href="/login.html">Iniciar Sesión</a><br>
+    </form>
+</template>
+<script type="application/javascript">
+    (()=>{
+        const thisDocument = (document._currentScript || document.currentScript).ownerDocument;
+        requirejs(
+            ["DataModel", "ComponentsManager", "NavigationManager"],
+            ({User}, {register, Utils}, {navigate, getContentContainer}) => {
+                register({
+                    name : "signup-dialog",
+                    load : async () => {
+                        if(await User.isAuthenticated())
+                            return navigate("/");
+
+                        Utils.emptyDOMNode(document.body);
+
+                        document.body.appendChild(document.createElement("signup-dialog"));
+                        document.title = "Crear Usuario";
+                    }
+                });
+
+                const template = thisDocument.getElementById('signup-dialog');
+
+                window.customElements.define('signup-dialog', class extends HTMLElement {
+                    constructor() {
+                        super();
+
+                        Utils.setupCustomElementFromTemplate(template, this);
+
+                        this._form = this.shadowRoot.getElementById('signupForm');
+
+                        this._form.addEventListener("submit", handleForm.bind(this), true);
+                    }
+                });
+
+                async function handleForm(e) {
+                    e.preventDefault();
+
+                    if(this._formSubmitted)
+                        return;
+
+                    this._formSubmitted = true;
+
+                    const user = this._form.user.value;
+                    const password = this._form.password.value;
+
+                    const contentContainer = getContentContainer();
+                    const indicator = Utils.appendLoadIndicator(contentContainer);
+
+                    const signupOK = await User.signup(user, password);
+
+                    contentContainer.removeChild(indicator);
+
+                    if (signupOK === true) {
+                        NavigationManager.navigate("/login.html");
+                    } else {
+                        alert("Usuario y/o contraseña no validos: " + signupOK);
+                        delete this._formSubmitted;
+                    }
+                }
+            }
+        );
+    })();
+</script>
