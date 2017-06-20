@@ -1,0 +1,36 @@
+<template id="logout-button">
+    <button id="logout">
+        <slot>Cerrar sesión</slot>
+    </button>
+</template>
+<script type="application/javascript">
+    (()=>{
+        const thisDocument = (document._currentScript || document.currentScript).ownerDocument;
+        requirejs(
+            ["DataModel", "ComponentsManager", "NavigationManager"],
+            ({User}, {register, Utils}, {navigate, getContentContainer}) => {
+                register({
+                    name : "logout-button"
+                });
+
+                const template = thisDocument.getElementById('logout-button');
+
+                window.customElements.define('logout-button', class extends HTMLElement {
+                    constructor() {
+                        super();
+
+                        Utils.setupCustomElementFromTemplate(template, this);
+
+                        const btn = this.shadowRoot.getElementById("logout");
+                        btn.addEventListener("click", async (e)=>{
+                            const contentContainer = getContentContainer();
+                            const indicator = Utils.appendLoadIndicator(contentContainer);
+                            await User.logout();
+                            contentContainer.removeChild(indicator);
+                            navigate("/login.html", true);
+                        }, true);
+                    }
+                });
+            });
+    })();
+</script>

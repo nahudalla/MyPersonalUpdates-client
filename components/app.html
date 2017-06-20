@@ -1,0 +1,17 @@
+<script type="application/javascript">
+requirejs(
+    ["ComponentsManager"],
+    ({register, Utils}) => {
+        register({
+            name : "app",
+            uses : "logout-button",
+            load : () => {
+                Utils.emptyDOMNode(document.body);
+
+                document.body.appendChild(document.createElement("logout-button"));
+                document.title = "My Personal Updates";
+            }
+        });
+    }
+);
+</script>

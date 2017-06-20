@@ -1,0 +1,77 @@
+<template id="login-dialog">
+    <style type="text/css">
+        :host {
+            display: block;
+            contain: content;
+        }
+    </style>
+    <form id="loginForm">
+        <h1>Iniciar Sesión</h1><br>
+        <input type="text" name="user" placeholder="Usuario" value="nahuel"><br>
+        <input type="password" name="password" placeholder="Contraseña" value="password"><br>
+        <input type="submit" value="Ingresar"><br>
+        <a href="/signup.html">Registrarse</a><br>
+    </form>
+</template>
+<script type="application/javascript">
+    (()=>{
+        const thisDocument = (document._currentScript || document.currentScript).ownerDocument;
+        requirejs(
+            ["DataModel", "ComponentsManager", "NavigationManager"],
+            ({User}, {register, Utils}, {navigate, getContentContainer}) => {
+                register({
+                    name : "login-dialog",
+                    load : async () => {
+                        if(await User.isAuthenticated())
+                            return navigate("/");
+
+                        Utils.emptyDOMNode(document.body);
+
+                        document.body.appendChild(document.createElement("login-dialog"));
+                        document.title = "Iniciar Sesión";
+                    }
+                });
+
+                const template = thisDocument.getElementById('login-dialog');
+
+                window.customElements.define('login-dialog', class extends HTMLElement {
+                    constructor() {
+                        super();
+
+                        Utils.setupCustomElementFromTemplate(template, this);
+
+                        this._form = this.shadowRoot.getElementById('loginForm');
+
+                        this._form.addEventListener("submit", handleForm.bind(this), true);
+                    }
+                });
+
+                async function handleForm(e) {
+                    e.preventDefault();
+
+                    if(this._formSubmitted)
+                        return;
+
+                    this._formSubmitted = true;
+
+                    const user = this._form.user.value;
+                    const password = this._form.password.value;
+
+                    const contentContainer = getContentContainer();
+                    const indicator = Utils.appendLoadIndicator(contentContainer);
+
+                    const loginOK = await User.login(user, password);
+
+                    contentContainer.removeChild(indicator);
+
+                    if (loginOK) {
+                        navigate("/");
+                    } else {
+                        alert("Usuario y/o contraseña incorrectos.");
+                        delete this._formSubmitted;
+                    }
+                }
+            }
+        );
+    })();
+</script>

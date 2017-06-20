@@ -1,0 +1,45 @@
+<template id="e404-dialog">
+    <style type="text/css">
+        :host h1 {
+            color: #555;
+            font-size: 2em;
+            font-weight: 400;
+        }
+
+        :host p {
+            margin: 0 auto;
+            width: 310px;
+            text-align: justify;
+        }
+    </style>
+    <h1>Página no encontrada</h1>
+    <p>La p&aacute;gina a la que intentas acceder no existe en este servidor. Chequea la URL o vuelve a intentarlo m&aacute;s tarde.</p>
+</template>
+<script type="application/javascript">
+    (()=>{
+        const thisDocument = (document._currentScript || document.currentScript).ownerDocument;
+        requirejs(
+            ["ComponentsManager"],
+            ({register, Utils}) => {
+                register({
+                    name: "e404-dialog",
+                    load: () => {
+                        Utils.emptyDOMNode(document.body);
+
+                        document.body.appendChild(document.createElement("e404-dialog"));
+                    }
+                });
+
+                const template = thisDocument.getElementById('e404-dialog');
+
+                window.customElements.define('e404-dialog', class extends HTMLElement {
+                    constructor() {
+                        super();
+
+                        Utils.setupCustomElementFromTemplate(template, this);
+                    }
+                });
+            }
+        );
+    })();
+</script>
