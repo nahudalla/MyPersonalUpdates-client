@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="" style="display: table;height: 100%;text-align: center;width: 100%;">
+<html lang="">
     <head>
         <meta charset="utf-8">
         <meta http-equiv="x-ua-compatible" content="ie=edge">
@@ -9,16 +9,76 @@
 
         <link rel="stylesheet" href="css/normalize.css">
         <link rel="stylesheet" href="css/main.css">
+
+        <script type="application/javascript" src="/js/jquery-3.2.1.slim.min.js"></script>
+        <script type="application/javascript">
+            if(!window.pageLoaded) {
+                window.pageLoaded = false;
+                window.Exception = class Exception extends Error {
+                    constructor(message) {
+                        super(message);
+                        this.__message = message;
+                    }
+
+                    get message() {
+                        return this.__message;
+                    }
+                };
+                document.write(
+`       <script type="application/javascript" src="js/server.js"><\/script>
+        <script type="application/javascript" src="js/auth.js"><\/script>
+        <script type="application/javascript" src="js/overlay.js"><\/script>
+`
+                );
+            }
+        </script>
     </head>
-    <body style="display: table-cell; vertical-align: middle; margin: 2em auto;">
+    <body>
         <noscript>
             <p class="no-js-prompt">
                 Parece que tienes JavaScript desactivado.<br>Por favor, actívalo para poder usar esta aplicación.
             </p>
         </noscript>
 
-        <script src="/js/3rd-party/webcomponents/webcomponents-loader.js"></script>
-        <script src="/js/3rd-party/require.js"></script>
-        <script src="/js/frontend/main.js"></script>
+        <script type="application/javascript">
+            if(window.pageLoaded === true) {
+                throw new Exception('Página no encontrada.');
+            } else
+            (async function () {
+                window.pageLoaded = true;
+
+                Overlay.show("Cargando...");
+
+                window.onerror = function(_0,_1,_2,_3, err) {
+                    alert(`Error${typeof err.message === "string" ? (': '+err.message) : ''}\n\nVer consola.`);
+                };
+
+                window.addEventListener('unhandledrejection', function(event) {
+                    alert(`Error${typeof event.reason.message === "string" ? (': '+event.reason.message) : ''}\n\nVer consola.`);
+                    console.error('Unhandled rejection (promise: ', event.promise, ', reason: ', event.reason, ').');
+                });
+
+                let uri = new URL(window.location);
+                uri.pathname = "/components"+uri.pathname;
+
+                let response;
+                try {
+                    response = await fetch(uri.href);
+                } catch (err) {
+                    throw new Exception('Error al cargar la página.');
+                }
+
+                if(response.ok) {
+                    const res = await response.text();
+                    const body = $(document.body);
+                    if(response.status === 200 && res !== body.html()) {
+                        body.html(res);
+                    } else {
+                        console.error(response);
+                        throw new Exception('Página no encontrada o error del servidor.');
+                    }
+                } else throw new Exception('Error al cargar la página.');
+            })();
+        </script>
     </body>
 </html>

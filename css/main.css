@@ -288,3 +288,25 @@ textarea {
         page-break-after: avoid;
     }
 }
+
+html {
+    width: 100%;
+    height: 100%;
+}
+
+body {
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+}
+
+div.centeredContainer {
+    display: table;
+    width: 100%;
+    height: 100%;
+    text-align: center;
+}
+div.centeredContainer > div.content {
+    display: table-cell;
+    vertical-align: middle;
+}
