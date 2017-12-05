@@ -1,0 +1,91 @@
+<script type="application/javascript">
+(async function () {
+    await Auth.ensureAuthenticated();
+})();
+</script>
+
+<style type="text/css">
+    .tableList {
+        width: 100%;
+        border: #000 1px solid;
+    }
+    .tableList td {
+        padding: 5px;
+    }
+    .tableList td+td {
+        border-left: #000 1px solid;
+    }
+    .tableList tr+tr, .tableList thead+tbody {
+        border-top: #000 1px solid;
+    }
+    .tableList thead {
+        background-color: #555;
+        color: #EEE;
+    }
+    .tableList tbody tr:nth-child(odd) {
+        background-color: rgb(250, 250, 250);
+    }
+    .tableList tbody tr:hover {
+        background-color: #EEE;
+    }
+</style>
+
+<h1>Listado de Proveedores</h1>
+
+<table class="tableList">
+    <thead style="text-align: center; font-weight: bolder;">
+        <tr>
+            <td>Nombre</td>
+            <td>Descripción</td>
+            <td>Vinculación</td>
+        </tr>
+    </thead>
+    <tbody id="providersTable">
+        <tr>
+            <td colspan="3">Cargando...</td>
+        </tr>
+    </tbody>
+</table>
+
+<script type="application/javascript">
+    const providersTable = $("#providersTable");
+
+    providersTable.html('');
+
+    if(Provider.providers === 0) {
+        providersTable.html(
+`       <tr>
+            <td colspan="3">No hay proveedores.</td>
+        </tr>
+`);
+    } else Provider.providers.forEach(async provider => {
+        const row = $(document.createElement('tr'));
+
+        const info = await provider.info;
+
+        row.append(`<td>${info.name}</td>`);
+        row.append(`<td>${info.description}</td>`);
+        const vCell = $(document.createElement('td'));
+
+        if(provider.requiresAuthentication) {
+            const linkSetupFn = async function () {
+                if(await provider.userAuthenticated) {
+                    vCell.text('Cuenta vinculada.');
+                } else {
+                    vCell.text('Requiere vinculación de cuenta. ');
+                    const link = $(`<a>Preparando...</a>`);
+                    provider.setupAuthLink(link, 'Vincular', 'Error', 'Esperando vinculación...', linkSetupFn);
+                    vCell.append(link);
+                }
+            };
+
+            await linkSetupFn();
+        } else {
+            vCell.text('No requiere vinculación.');
+        }
+
+        row.append(vCell);
+
+        providersTable.append(row);
+    });
+</script>

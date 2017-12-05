@@ -6,7 +6,9 @@ window.Server = new (class {
     async doRequest(path, config) {
         path = new URL(path, window.location);
 
-        if(config.method === "POST" && typeof config.body === "object") {
+        if((config.method === "POST" ||
+            config.method === "PUT"
+           ) && typeof config.body === "object") {
             config.body.token = Auth.token;
         } else {
             path.searchParams.set('token', Auth.token);
@@ -68,9 +70,21 @@ window.Server = new (class {
         });
     }
 
+    DELETE(path) {
+        return this.doRequest(path, {
+            method: "DELETE"
+        });
+    }
+
     POST(path, body) {
         return this.doRequest(path, {
-            method: 'POST',
+            method: 'POST', body
+        });
+    }
+
+    PUT(path, body) {
+        return this.doRequest(path, {
+            method: 'PUT',
             body: body
         });
     }

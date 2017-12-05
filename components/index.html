@@ -1,7 +1,3 @@
 <script type="application/javascript">
-(async function () {
-    await Auth.ensureAuthenticated();
-})();
+window.location.href = (new URL("/categories.html", window.location)).href;
 </script>
-
-<button onclick="Auth.logout();">Cerrar sesion</button>

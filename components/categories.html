@@ -1,0 +1,53 @@
+<script type="application/javascript">
+(async function () {
+    Auth.ensureAuthenticated();
+})();
+</script>
+
+<h1>Listado de Categorías</h1>
+
+<ul class="horizMenu">
+    <li><a href="addCategory.html">Crear Categoría</a></li>
+</ul>
+<div class="clearfix"></div>
+
+<ul id="categoryList">
+    <li>Cargando...</li>
+</ul>
+
+<script type="application/javascript">
+(async function () {
+    const categoriesList = $("#categoryList");
+
+    function addCategory(info) {
+        const elem = $(document.createElement("li"));
+        elem.html(`<a href="" class="deleteBtn">Eliminar</a> - <a href="/category.html?name=${info.name}">${info.name}</a>`);
+
+        $(elem.children('a')[0]).on('click', async function (e) {
+            e.preventDefault();
+
+            if(confirm(`¿Seguro eliminar ${info.name}?`)) {
+                const res = await Server.DELETE((new URL(`/category/${info.name}`, window.location)).href);
+
+                if(!(Server.responseOK(res)))
+                    throw new Exception('Error al eliminar.');
+
+                categoriesList.remove(elem);
+            }
+        });
+        categoriesList.append(elem);
+    }
+
+    const res = await Server.GET((new URL("/category", window.location)).href);
+
+    if(!Server.responseOK(res))
+        throw new Exception("No se pudieron cargar las categorías.");
+
+    if(res.categories.length === 0) {
+        categoriesList.html("<li>No hay categorías.</li>");
+    } else {
+        categoriesList.html("");
+        res.categories.forEach(category => addCategory(category));
+    }
+})();
+</script>

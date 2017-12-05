@@ -1,0 +1,94 @@
+<script type="application/javascript">
+(async function () {
+    Auth.ensureAuthenticated();
+
+    Overlay.show('Cargando...');
+
+    if(Provider.availableProviders.length === 0) {
+        alert('No hay proveedores disponibles para usar. Vincule al menos uno.');
+
+        window.location.href = (new URL('/providers.html', window.location)).href;
+    } else {
+        Overlay.hide();
+    }
+})();
+</script>
+
+<style type="text/css">
+    label {
+        display: block;
+    }
+</style>
+
+<h1>Crear Categoría</h1>
+
+<input type="text" id="name" placeholder="Nombre"> &nbsp;
+<button id="saveBTN">Guardar</button>
+<br><br>
+<div id="form"></div>
+<br>
+<button id="saveBTN2">Guardar</button>
+<script type="application/javascript">
+    const form = $('#form');
+    const _name = $('#name');
+    const saveBtn = $('#saveBTN');
+    const saveBtn2 = $('#saveBTN2');
+
+    FilterForm.render(form);
+
+    saveBtn.on('click', save);
+    saveBtn2.on('click', save);
+
+    async function save() {
+        saveBtn.prop('disabled', 'disabled');
+        saveBtn2.prop('disabled', 'disabled');
+
+        if(_name.val() === "") {
+            _name.focus();
+            saveBtn.prop('disabled', '');
+            saveBtn2.prop('disabled', '');
+            throw new Exception('Introduzca un nombre para la categoría.');
+        }
+
+        const name = _name.val();
+        let filter;
+
+        try {
+            filter = FilterForm.toJSON(form);
+        }catch (e) {
+            saveBtn.prop('disabled', '');
+            saveBtn2.prop('disabled', '');
+            throw e;
+        }
+
+        function findProviders(providers, obj) {
+            for(let key of Object.keys(obj)) {
+                if(key === 'providerID') {
+                    if(!providers.includes(obj[key]))
+                        providers.push(obj[key]);
+                }else if(typeof obj[key] === "object")
+                    findProviders(providers, obj[key]);
+            }
+        }
+
+        const providers = [];
+
+        findProviders(providers, filter);
+
+        const res = await Server.PUT(
+            (new URL(`/category/${name}`, window.location)).href,
+            {
+                name, filter, providers
+            }
+        );
+        
+        if(!Server.responseOK(res)) {
+            saveBtn.prop('disabled', '');
+            saveBtn2.prop('disabled', '');
+            throw new Exception('Error al crear la categoría.');
+        }
+
+        alert('Categoría creada correctamente.');
+        window.location.href = (new URL('/categories.html', window.location)).href;
+    }
+</script>

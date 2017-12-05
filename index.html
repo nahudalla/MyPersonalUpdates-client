@@ -10,7 +10,7 @@
         <link rel="stylesheet" href="css/normalize.css">
         <link rel="stylesheet" href="css/main.css">
 
-        <script type="application/javascript" src="/js/jquery-3.2.1.slim.min.js"></script>
+        <script type="application/javascript" src="/js/jquery-3.2.1.min.js"></script>
         <script type="application/javascript">
             if(!window.pageLoaded) {
                 window.pageLoaded = false;
@@ -25,23 +25,86 @@
                     }
                 };
                 document.write(
-`       <script type="application/javascript" src="js/server.js"><\/script>
-        <script type="application/javascript" src="js/auth.js"><\/script>
-        <script type="application/javascript" src="js/overlay.js"><\/script>
+`       <script type="application/javascript" src="/js/server.js"><\/script>
+        <script type="application/javascript" src="/js/auth.js"><\/script>
+        <script type="application/javascript" src="/js/overlay.js"><\/script>
+        <script type="application/javascript" src="/js/provider.js"><\/script>
+        <script type="application/javascript" src="/js/Twitter.js"><\/script>
+        <script type="application/javascript" src="/js/filterForm.js"><\/script>
 `
                 );
             }
         </script>
+        <style type="text/css">
+            body > .leftMenu {
+                position: fixed;
+                left:0;
+                top:0;
+                height: 100%;
+                overflow: auto;
+                width: 250px;
+                padding: 10px;
+                box-sizing: border-box;
+                border-right: #555555 1px solid;
+            }
+
+            body.noMenu > .leftMenu {
+                display: none;
+            }
+
+            body > .rightContent {
+                position: relative;
+                left: 250px;
+                right:0;
+                padding: 10px;
+                margin-right: 250px;
+            }
+
+            body > .leftMenu #userName {
+                float: left;
+                font-weight: bolder;
+            }
+            body > .leftMenu #logoutBtn {
+                float: right;
+            }
+            body > .leftMenu ul {
+                padding-left: 15px;
+            }
+
+            ul.horizMenu {
+                list-style-type: none;
+                padding: 0;
+            }
+            ul.horizMenu li {
+                float: left;
+                padding: 5px;
+            }
+        </style>
     </head>
-    <body>
+    <body class="noMenu">
         <noscript>
             <p class="no-js-prompt">
                 Parece que tienes JavaScript desactivado.<br>Por favor, actívalo para poder usar esta aplicación.
             </p>
         </noscript>
 
+        <div class="leftMenu">
+            <div style="line-height: 2em; vertical-align: bottom; font-weight: bolder; text-align: center;">My Personal Updates</div>
+            <span id="userName"></span>
+            <a href="#" id="logoutBtn">Salir</a>
+            <div class="clearfix"></div>
+            <ul>
+                <li><a href="/providers.html">Listado de proveedores</a></li>
+                <li><a href="/categories.html">Listado de categorías</a></li>
+            </ul>
+        </div>
+        <div class="rightContent" id="content">
+
+        </div>
+
         <script type="application/javascript">
             if(window.pageLoaded === true) {
+                Overlay.show("Error");
                 throw new Exception('Página no encontrada.');
             } else
             (async function () {
@@ -58,6 +121,21 @@
                     console.error('Unhandled rejection (promise: ', event.promise, ', reason: ', event.reason, ').');
                 });
 
+                if(await Auth.isAuthenticated) {
+                    $(document.body).removeClass("noMenu");
+                    const uData = await Auth.getUserData();
+
+                    if(typeof uData === "object" && typeof uData.username === "string")
+                        $("#userName").text(uData.username);
+                    else
+                        $("#userName").text("undefined");
+                }
+
+                $("#logoutBtn").on("click", function (e) {
+                    e.preventDefault();
+                    Auth.logout();
+                });
+
                 let uri = new URL(window.location);
                 uri.pathname = "/components"+uri.pathname;
 
@@ -69,15 +147,12 @@
                 }
 
                 if(response.ok) {
-                    const res = await response.text();
-                    const body = $(document.body);
-                    if(response.status === 200 && res !== body.html()) {
-                        body.html(res);
-                    } else {
-                        console.error(response);
-                        throw new Exception('Página no encontrada o error del servidor.');
-                    }
-                } else throw new Exception('Error al cargar la página.');
+                    $("#content").html(await response.text());
+                } else {
+                    Overlay.show("Error");
+                    console.error(response);
+                    throw new Exception('Página no encontrada o error del servidor.');
+                }
             })();
         </script>
     </body>

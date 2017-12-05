@@ -11,6 +11,7 @@ overlayContainer.style.zIndex = 9999999999;
 overlayContainer.style.backgroundColor = "#FFF";
 overlayContainer.style.fontSize = "3em";
 overlayContainer.style.textAlign = "center";
+overlayContainer.style.boxSizing = "border-box";
 
 const overlayContent = document.createElement("div");
 overlayContent.style.verticalAlign = "middle";
@@ -27,7 +28,8 @@ window.Overlay = new (class {
     }
 
     hide() {
-        document.body.removeChild(overlayContainer);
+        if(Array.from(document.body.childNodes).includes(overlayContainer))
+            document.body.removeChild(overlayContainer);
     }
 });
 })();

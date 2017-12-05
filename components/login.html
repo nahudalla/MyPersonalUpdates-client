@@ -3,39 +3,74 @@
         <form id="loginForm">
             <input type="text" placeholder="Usuario" id="username"><br>
             <input type="password" placeholder="Contraseña" id="password"><br>
-            <input type="submit" value="Ingresar" id="submitBtn">
+            <input type="button" value="Ingresar" id="submitBtn">
+            <input type="button" value="Registrar nuevo usuario" id="signupBtn">
         </form>
     </div>
 </div>
-
+<style type="text/css">
+    body > .rightContent {
+        height: 100%;
+        box-sizing: border-box;
+    }
+</style>
 <script type="application/javascript">
+    Overlay.hide();
+
     const form = $("#loginForm");
     const username = $("#username");
     const password = $("#password");
     const submitBtn = $("#submitBtn");
+    const signupBtn = $("#signupBtn");
 
     let sending = false;
 
-    form.on("submit", async function (e) {
-        e.preventDefault();
-
-        if(sending) return;
-
+    function startSending() {
         sending = true;
-
+        signupBtn.prop("disabled", true);
         submitBtn.prop("disabled", true);
         username.prop("disabled", true);
         password.prop("disabled", true);
+    }
+
+    function endSending() {
+        sending = false;
+        submitBtn.prop("disabled", false);
+        signupBtn.prop("disabled", false);
+        username.prop("disabled", false);
+        password.prop("disabled", false);
+    }
+
+    form.on("submit", function (e) {
+        e.preventDefault();
+    });
+
+    submitBtn.on("click", async function () {
+        if(sending) return;
+        startSending();
+
         submitBtn.prop("value", "Ingresando...");
 
         try {
             await Auth.login(username.val(), password.val());
         } catch (e) {
             submitBtn.prop("value", "Ingresar");
-            submitBtn.prop("disabled", false);
-            username.prop("disabled", false);
-            password.prop("disabled", false);
-            sending = false;
+            endSending();
+            throw e;
+        }
+    });
+
+    signupBtn.on("click", async function () {
+        if(sending) return;
+        startSending();
+
+        signupBtn.prop("value", "Registrando...");
+
+        try {
+            await Auth.signup(username.val(), password.val());
+        } catch (e) {
+            signupBtn.prop("value", "Registrar nuevo usuario");
+            endSending();
             throw e;
         }
     });
