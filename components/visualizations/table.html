@@ -1,0 +1,94 @@
+<script type="application/javascript">
+(async function () {
+    await Auth.ensureAuthenticated();
+})();
+</script>
+
+<div id="historyContainer" class="hidden">
+    <h1>Historial: <span id="historyTitle"></span></h1>
+    <span id="historyCantResults">0</span> resultados en esta página. <a href="" id="historyForwardLink" class="hidden">Siguiente página ></a>
+    <table class="tableList">
+        <thead>
+            <tr>
+                <td>Proveedor</td>
+                <td>Fecha</td>
+                <td>Datos</td>
+                <td>Acciones</td>
+            </tr>
+        </thead>
+        <tbody id="historyList">
+            <tr>
+                <td colspan="4">Cargando...</td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+<div id="realTimeContainer" class="hidden">
+
+</div>
+
+<script type="application/javascript">
+(async function () {
+    const params = (new URL(window.location)).searchParams;
+
+    Overlay.show('Cargando...');
+
+    if(params.has('history')) {
+        const container = $('#historyContainer');
+        const title = container.find('#historyTitle');
+
+        container.removeClass('hidden');
+        title.text(params.get('category'));
+
+        const linkForward = $('#historyForwardLink');
+        const cantReults = $('#historyCantResults');
+        const historyList = $('#historyList');
+
+        let from = params.get('from');
+
+        Overlay.show('Cargando...');
+
+        const historyResult = await CategoryHistory.get(from);
+
+        cantReults.text(historyResult.results.length);
+
+        if(historyResult.results.length === 0) {
+            historyList.html('<tr><td>No hay resultados.</td></tr>');
+        } else {
+            historyList.html('');
+            if(historyResult.nextFrom) {
+                linkForward.removeClass('hidden');
+                const url = new URL(window.location);
+                url.searchParams.set('from', historyResult.nextFrom);
+                linkForward.prop('href', url.href);
+            } else {
+                linkForward.addClass('hidden');
+            }
+
+            for(let update of historyResult.results) {
+                update = update.renderizable;
+
+                const tr = $(document.createElement('tr'));
+                addTD(tr, await update.provider);
+                addTD(tr, await update.date);
+                addTD(tr, await update.data);
+                addTD(tr, await update.actions);
+                historyList.append(tr);
+            }
+
+            function addTD(tr, value) {
+                const td = $(document.createElement('td'));
+                tr.append(td);
+                td.html(value);
+            }
+        }
+
+        Overlay.hide();
+    } else if(params.has('realtime')) {
+        const container = $('#realTimeContainer');
+        container.removeClass('hidden');
+    }
+
+    Overlay.hide();
+})();
+</script>

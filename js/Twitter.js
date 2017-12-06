@@ -1,8 +1,28 @@
 (function () {
+class TwitterUpdate extends Update {
+    constructor(data) {
+        super(data);
+    }
+    async __getRenderizableProvider() {
+        return (await this.provider.info).name;
+    }
+    __getRenderizableDate() {
+        const date = new Date(this.timestamp);
+        return date.toDateString() + ' ' + date.toTimeString();
+    }
+    __getRenderizableData() {
+        return this.attributes.Texto;
+    }
+}
+
 const PROVIDER_ID = 1;
 window.Twitter = new (class _ extends Provider {
     constructor() {
         super(PROVIDER_ID);
+    }
+
+    createUpdate(data) {
+        return new TwitterUpdate(data);
     }
 
     get requiresAuthentication() {

@@ -121,6 +121,40 @@ async function renderAndOr(data, container) {
         legend.text('OR');
     }
 
+    {
+        // GROUPING
+        group.append('<div>Envolver con:</div>');
+        const ANDBtn = $(document.createElement('button'));
+        ANDBtn.text('AND');
+        ANDBtn.on('click', genHandler(AND_TYPE));
+
+        group.append(ANDBtn);
+
+        const ORBtn = $(document.createElement('button'));
+        ORBtn.text('OR');
+        ORBtn.on('click', genHandler(OR_TYPE));
+
+        group.append(ORBtn);
+
+        function genHandler(type) {
+            return function () {
+                const div = $(document.createElement('div'));
+                group.before(div);
+                group.detach();
+                FilterForm.render(div, {
+                    type: type,
+                    filter1: {
+                        type: RENDERED_TYPE,
+                        element: group
+                    }
+                });
+            }
+        }
+    }
+
+    group.append('<br>');
+    group.append('<br>');
+
     // FORM
     const form = $(document.createElement('form'));
     form.on('submit', e => e.preventDefault());
