@@ -20,8 +20,28 @@ window.Update = class Update {
                 return _this.__getRenderizableData();
             },
             get actions() {
-                // TODO: do it
-                return 'acciones';
+                if(!Update.__updateID) {
+                    Update.__updateID = 0;
+                }
+
+                if(!_this.id) {
+                    _this.__data.id = 'rt'+(Update.__updateID++);
+                }
+
+                const url = new URL(`/viewStatus.html?id=${_this.id}`, window.location);
+                const a = $(document.createElement('a'));
+                a.prop('href', url.href);
+                a.text('Ver todos los datos');
+                a.on('click', function (e) {
+                    e.preventDefault();
+
+                    window.sessionStorage.setItem(`UPDATE_DATA_${_this.id}`, JSON.stringify(_this.__data));
+
+                    const win = window.open(url.href, '_blank');
+                    win.focus();
+                });
+
+                return a;
             }
         };
     }

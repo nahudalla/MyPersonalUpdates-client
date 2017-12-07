@@ -39,11 +39,16 @@ window.Provider = class Provider {
     }
 
     get attributes() {
+        if(this.__attributesCache)
+            return this.__attributesCache;
+
         return (async () => {
             const res = await Server.GET((new URL(`/provider/${this.id}/attribute/all`, window.location)).href);
 
             if(!Server.responseOK(res))
                 throw new Exception(`No se pudieron obtener los atributos del proveedor (${this.id}).`);
+
+            this.__attributesCache = res.attributes;
 
             return res.attributes;
         })();
@@ -58,11 +63,16 @@ window.Provider = class Provider {
     }
 
     get info() {
+        if(this.__infoCache)
+            return this.__infoCache;
+
         return (async () => {
             const res = await Server.GET((new URL(`/provider/${this.id}`, window.location)).href);
 
             if(!(Server.responseOK(res)))
                 throw new Exception(`No se pudo obtener la informacion del proveedor (${this.id}).`);
+
+            this.__infoCache = res;
 
             return res;
         })();

@@ -6,6 +6,9 @@ window.Server = new (class {
     async doRequest(path, config) {
         path = new URL(path, window.location);
 
+        path.href
+        // http://localhost/user
+
         if((config.method === "POST" ||
             config.method === "PUT"
            ) && typeof config.body === "object") {

@@ -24,7 +24,25 @@
     </table>
 </div>
 <div id="realTimeContainer" class="hidden">
-
+    <h1>Tiempo real: <span id="realtimeTitle"></span></h1>
+    Mostrar <input type="number" step="1" min="1" max="200" id="cantToShow" value="50"> actualizaciones.
+    &nbsp;<input type="button" id="startStopBtn" value="Iniciar"><br><br>
+    <span id="realtimeCantResults">0</span> actualizaciones recibidas.
+    <table class="tableList">
+        <thead>
+        <tr>
+            <td>Proveedor</td>
+            <td>Fecha</td>
+            <td>Datos</td>
+            <td>Acciones</td>
+        </tr>
+        </thead>
+        <tbody id="realTimeList">
+        <tr>
+            <td colspan="4">Esperando actualizaciones...</td>
+        </tr>
+        </tbody>
+    </table>
 </div>
 
 <script type="application/javascript">
@@ -53,7 +71,7 @@
         cantReults.text(historyResult.results.length);
 
         if(historyResult.results.length === 0) {
-            historyList.html('<tr><td>No hay resultados.</td></tr>');
+            historyList.html('<tr><td colspan="4">No hay resultados.</td></tr>');
         } else {
             historyList.html('');
             if(historyResult.nextFrom) {
@@ -79,7 +97,9 @@
             function addTD(tr, value) {
                 const td = $(document.createElement('td'));
                 tr.append(td);
-                td.html(value);
+                if(typeof value === "object" && value instanceof Node)
+                    td.append(value);
+                else td.html(value);
             }
         }
 
@@ -87,6 +107,77 @@
     } else if(params.has('realtime')) {
         const container = $('#realTimeContainer');
         container.removeClass('hidden');
+
+        const title = $('#realtimeTitle');
+        const cantToShowField = $('#cantToShow');
+        const startStopBtn = $('#startStopBtn');
+        const cantResultsSpan = $('#realtimeCantResults');
+        const list = $('#realTimeList');
+
+        title.text(params.get('category'));
+
+        let running = false;
+        let cantResults = 0;
+        let resultsShown = 0;
+
+        startStopBtn.on('click', async function () {
+            if(running) {
+                running = false;
+                cantToShowField.prop('disabled', '');
+                startStopBtn.val('Iniciar');
+
+                RealTime.stop();
+            } else {
+                running = true;
+                cantToShowField.prop('disabled', 'disabled');
+                startStopBtn.val('Parar');
+
+                const maxResultsShown = parseInt(cantToShowField.val());
+
+                if(cantResults === 0)
+                    list.html('');
+
+                RealTime.start(params.get('category'), async function (error, update) {
+                    if(error) {
+                        if(!running) return;
+
+                        running = false;
+                        cantToShowField.prop('disabled', '');
+                        startStopBtn.val('Iniciar');
+
+                        RealTime.stop();
+
+                        throw error;
+                    }
+
+                    update = update.renderizable;
+
+                    const tr = $(document.createElement('tr'));
+                    addTD(tr, await update.provider);
+                    addTD(tr, await update.date);
+                    addTD(tr, await update.data);
+                    addTD(tr, await update.actions);
+
+                    resultsShown++;
+
+                    while(resultsShown > maxResultsShown) {
+                        list.children().last().remove();
+                        resultsShown--;
+                    }
+
+                    list.prepend(tr);
+
+                    cantResultsSpan.text(++cantResults);
+                });
+                function addTD(tr, value) {
+                    const td = $(document.createElement('td'));
+                    tr.append(td);
+                    if(typeof value === "object" && value instanceof Node)
+                        td.append(value);
+                    else td.html(value);
+                }
+            }
+        });
     }
 
     Overlay.hide();

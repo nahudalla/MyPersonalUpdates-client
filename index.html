@@ -32,8 +32,10 @@
         <script type="application/javascript" src="/js/filterForm.js"><\/script>
         <script type="application/javascript" src="/js/Visualizations.js"><\/script>
         <script type="application/javascript" src="/js/Update.js"><\/script>
+        <script type="application/javascript" src="/js/UpdatesObservable.js"><\/script>
         <script type="application/javascript" src="/js/CategoryHistory.js"><\/script>
         <script type="application/javascript" src="/js/Twitter.js"><\/script>
+        <script type="application/javascript" src="/js/RealTime.js"><\/script>
 `
                 );
             }
@@ -61,6 +63,14 @@
                 right:0;
                 padding: 10px;
                 margin-right: 250px;
+                word-break: break-all;
+                word-wrap: break-word;
+                overflow-x: hidden;
+            }
+
+            body.noMenu > .rightContent {
+                left: 0;
+                margin-right: 0;
             }
 
             body > .leftMenu #userName {
@@ -99,6 +109,7 @@
             <ul>
                 <li><a href="/providers.html">Listado de proveedores</a></li>
                 <li><a href="/categories.html">Listado de categorías</a></li>
+                <li><a href="/searchTwitterUserID.html">Buscar ID numérico de usuario de Twitter</a></li>
             </ul>
         </div>
         <div class="rightContent" id="content">

@@ -16,6 +16,8 @@ class TwitterUpdate extends Update {
 }
 
 const PROVIDER_ID = 1;
+const FIND_USER_ID_ACTION_NAME = "userLookup";
+const FIND_USER_SCREEN_NAME_ACTION_NAME = "userLookupByID";
 window.Twitter = new (class _ extends Provider {
     constructor() {
         super(PROVIDER_ID);
@@ -76,6 +78,44 @@ window.Twitter = new (class _ extends Provider {
                 }, 1000);
             });
         }
+    }
+
+    async findUserIDByScreenName(screenName) {
+        const res = await Server.POST(
+            (new URL(`/provider/${this.id}/action/${FIND_USER_ID_ACTION_NAME}`, window.location)).href,
+            {
+                username: screenName
+            }
+        );
+
+        if(!Server.responseOK(res)) {
+            if(res.status === 403) {
+                throw new Exception('Se requiere autenticación válida con el proveedor.');
+            }
+
+            throw new Exception('Usuario no encontrado o error al buscar.');
+        }
+
+        return res.id;
+    }
+
+    async findUserScreenNameByID(id) {
+        const res = await Server.POST(
+            (new URL(`/provider/${this.id}/action/${FIND_USER_SCREEN_NAME_ACTION_NAME}`, window.location)).href,
+            {
+                id: id
+            }
+        );
+
+        if(!Server.responseOK(res)) {
+            if(res.status === 403) {
+                throw new Exception('Se requiere autenticación válida con el proveedor.');
+            }
+
+            throw new Exception('Usuario no encontrado o error al buscar.');
+        }
+
+        return res.username;
     }
 });
 })();

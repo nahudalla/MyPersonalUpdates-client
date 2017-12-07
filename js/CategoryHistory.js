@@ -11,8 +11,10 @@ class CategoryHistoryResult {
         return this.__nextFrom;
     }
 }
-window.CategoryHistory = new (class {
+window.CategoryHistory = new (class _CategoryHistory extends UpdatesObservable {
     constructor() {
+        super();
+
         const params = (new URL(window.location)).searchParams;
 
         this.__category = params.get('category');
@@ -21,6 +23,7 @@ window.CategoryHistory = new (class {
         this.__end = parseInt(params.get('endTimestamp'));
         this.__order = params.get('order') === 'true';
     }
+
     async get(from) {
         // TODO: reordenar resultados
         if(!this.__filter) {
@@ -38,7 +41,7 @@ window.CategoryHistory = new (class {
         if(this.__limit) restrictions.limit = this.__limit + 1;
         if(this.__start) restrictions.startTimestamp = this.__start;
         if(this.__end) restrictions.endTimestamp = this.__end;
-        if(this.__order) restrictions.order = this.__order;
+        if(this.__order || this.__order === false) restrictions.order = this.__order;
         if(from) restrictions.fromID = parseInt(from);
 
         const res = await Server.POST(
@@ -63,6 +66,9 @@ window.CategoryHistory = new (class {
         for(let result of res.updates) {
             results.push(Update.createUpdate(result));
         }
+
+        if(results.length > 0)
+            this.__emitUpdates(results);
 
         return new CategoryHistoryResult(results, nextFrom);
     }
