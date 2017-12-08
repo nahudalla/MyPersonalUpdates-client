@@ -4,7 +4,7 @@ window.UpdatesObservable = class UpdatesObservable {
     }
 
     suscribeToUpdates(callback) {
-        if(!this.__resultsSuscribers.contains(callback))
+        if(!this.__resultsSuscribers.includes(callback))
             this.__resultsSuscribers.push(callback);
     }
 

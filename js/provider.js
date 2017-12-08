@@ -4,7 +4,7 @@ window.Provider = class Provider {
     }
 
     static get providers() {
-        return [Twitter];
+        return [Twitter, Reddit];
     }
 
     static get availableProviders() {

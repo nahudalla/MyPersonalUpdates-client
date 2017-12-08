@@ -5,6 +5,7 @@ class TwitterOriginalVSSharedStatisticsGenerator {
         this.__totalOriginalUpdates = 0;
         this.__totalSharedUpdates = 0;
         this.__usersMap = new Map();
+        this.__users = [];
     }
 
     async __processUpdate(update) {
@@ -13,47 +14,51 @@ class TwitterOriginalVSSharedStatisticsGenerator {
 
         this.__totalUpdates++;
 
-        if(update.attributes.Retweet) {
+        if(update.attributes.Retweet === 'true') {
             this.__totalSharedUpdates++;
         } else {
             this.__totalOriginalUpdates++;
-        }
 
-        const origUserID = update.attributes['ID del usuario del Tweet Original'];
+            const userID = update.attributes['Usuario'];
 
-        if(origUserID) {
-            let user;
-            if (!this.__usersMap.has(origUserID)) {
-                user = {
-                    humanReadableName: await Twitter.findUserScreenNameByID(origUserID),
-                    shareCount: 0
-                };
-                this.__usersMap.set(origUserID, user);
-            } else {
-                this.__usersMap.get(origUserID);
+            if(userID) {
+                let user;
+
+                if (!this.__usersMap.has(userID)) {
+                    user = {
+                        identifierByProvider: userID,
+                        humanReadableName: Twitter.findUserScreenNameByID(userID),
+                        shareCount: 0,
+                        provider: Twitter
+                    };
+                    this.__usersMap.set(userID, user);
+
+                    user.humanReadableName = await user.humanReadableName;
+                    this.__users.push(user);
+                } else {
+                    user = this.__usersMap.get(userID);
+                }
+
+                user.shareCount++;
+
+                await user.humanReadableName;
             }
-
-            user.shareCount++;
         }
     }
 
     get totalProcessedUpdates() {
-        return this.__twitterGenerator.totalProcessedUpdates();
+        return this.__totalUpdates;
     }
 
     get totalOriginalUpdates() {
-        return this.__twitterGenerator.totalOriginalUpdates();
+        return this.__totalOriginalUpdates;
     }
 
     get totalSharedUpdates() {
-        return this.__twitterGenerator.totalSharedUpdates();
+        return this.__totalSharedUpdates;
     }
 
     get providersUsersWithSharedUpdatesInfo() {
-        let users = [];
-
-        users = users.concat(this.__twitterGenerator.providersUsersWithSharedUpdatesInfo());
-
-        return users;
+        return this.__users;
     }
 };

@@ -137,7 +137,7 @@
                 if(cantResults === 0)
                     list.html('');
 
-                RealTime.start(params.get('category'), async function (error, update) {
+                RealTime.start(async function (error, update) {
                     if(error) {
                         if(!running) return;
 

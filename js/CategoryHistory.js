@@ -25,7 +25,6 @@ window.CategoryHistory = new (class _CategoryHistory extends UpdatesObservable {
     }
 
     async get(from) {
-        // TODO: reordenar resultados
         if(!this.__filter) {
             const res = await Server.GET((new URL(`/category/${this.__category}`, window.location)).href);
 

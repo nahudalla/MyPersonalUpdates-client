@@ -7,7 +7,7 @@ window.RealTime = (new class _RealTime extends UpdatesObservable {
         this.__host = url.hostname;
     }
 
-    start(category, callback) {
+    start(callback) {
         const url = `ws://${this.__host}/stream/${this.__urlParams.get('category')}/${Auth.token}`;
 
         if(this.__socket)
@@ -24,16 +24,19 @@ window.RealTime = (new class _RealTime extends UpdatesObservable {
 
             this.__emitUpdates(update);
 
-            callback(undefined, update);
+            if(callback)
+                callback(undefined, update);
         });
 
         this.__socket.addEventListener('error', function (e) {
             console.error(e);
-            callback(new Exception('Error en la conexión en tiempo real al servidor.'));
+            if(callback)
+                callback(new Exception('Error en la conexión en tiempo real al servidor.'));
         });
 
         this.__socket.addEventListener('close', function () {
-            callback(new Exception('Conexión en tiempo real con el servidor cerrada de manera inesperada.'));
+            if(callback)
+                callback(new Exception('Conexión en tiempo real con el servidor cerrada de manera inesperada.'));
         });
     }
 

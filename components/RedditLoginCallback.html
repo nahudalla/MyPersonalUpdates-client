@@ -1,0 +1,23 @@
+<script type="application/javascript">
+(async function () {
+    await Auth.ensureAuthenticated();
+
+    const url = new URL(window.location);
+
+    Overlay.show('Finalizando...');
+
+    if(url.searchParams.get('error') === 'access_denied') {
+        alert('Vinculación con Reddit cancelada.');
+    } else if(url.searchParams.has('error')) {
+        throw new Exception('Falló la vinculación con Reddit.');
+    } else {
+        if(await Reddit.finishUserLogin()) {
+            alert('Vinculación finalizada.');
+        } else {
+            throw new Exception('No se pudo finalizar la vinculación.');
+        }
+    }
+
+    window.close();
+})();
+</script>
