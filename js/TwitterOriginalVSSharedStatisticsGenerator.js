@@ -9,9 +9,6 @@ class TwitterOriginalVSSharedStatisticsGenerator {
     }
 
     async __processUpdate(update) {
-        if(update.provider.id !== Twitter.id)
-            return;
-
         this.__totalUpdates++;
 
         if(update.attributes.Retweet === 'true') {

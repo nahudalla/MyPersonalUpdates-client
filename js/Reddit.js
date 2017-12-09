@@ -12,7 +12,20 @@
             return date.toDateString() + ' ' + date.toTimeString();
         }
         __getRenderizableData() {
-            return this.attributes.Texto;
+            const fragment = $(document.createDocumentFragment());
+            if(typeof this.attributes['Titulo'] === "string")
+                fragment.append(`<span style="font-weight: bolder;">${this.attributes['Titulo']}</span>&nbsp;`);
+
+            if(typeof this.attributes.Cuerpo === "string")
+                fragment.append(`<span>${this.attributes.Cuerpo}</span>&nbsp;`);
+
+            const imgs = this.attributes['Imagenes de previsualizacion'];
+            if(imgs && Array.isArray(imgs)) {
+                for(let img of imgs) {
+                    fragment.append(`<img src="${img}" width="100">`);
+                }
+            }
+            return fragment;
         }
     }
 
@@ -32,16 +45,14 @@
         }
 
         get userAuthenticated() {
-            // TODO: implementar en server y arreglar aca
-            return false;
-/*            return (async () => {
+            return (async () => {
                 const res = await this.__getAction('loginCheck');
 
                 if(!(Server.responseOK(res)))
                     return undefined;
 
                 return res.loggedIn;
-            })();*/
+            })();
         }
 
         async finishUserLogin() {
