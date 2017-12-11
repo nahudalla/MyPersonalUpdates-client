@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="" style="display: table;height: 100%;text-align: center;width: 100%;">
+<html lang="">
     <head>
         <meta charset="utf-8">
         <meta http-equiv="x-ua-compatible" content="ie=edge">
@@ -7,18 +7,172 @@
         <meta name="description" content="">
         <meta name="viewport" content="width=device-width, initial-scale=1">
 
-        <link rel="stylesheet" href="css/normalize.css">
-        <link rel="stylesheet" href="css/main.css">
+        <link rel="stylesheet" href="/css/normalize.css">
+        <link rel="stylesheet" href="/css/main.css">
+
+        <script type="application/javascript" src="/js/jquery-3.2.1.min.js"></script>
+        <script type="application/javascript">
+            if(!window.pageLoaded) {
+                window.pageLoaded = false;
+                window.Exception = class Exception extends Error {
+                    constructor(message) {
+                        super(message);
+                        this.__message = message;
+                    }
+
+                    get message() {
+                        return this.__message;
+                    }
+                };
+                document.write(
+`       <script type="application/javascript" src="/js/server.js"><\/script>
+        <script type="application/javascript" src="/js/auth.js"><\/script>
+        <script type="application/javascript" src="/js/overlay.js"><\/script>
+        <script type="application/javascript" src="/js/provider.js"><\/script>
+        <script type="application/javascript" src="/js/filterForm.js"><\/script>
+        <script type="application/javascript" src="/js/Visualizations.js"><\/script>
+        <script type="application/javascript" src="/js/Update.js"><\/script>
+        <script type="application/javascript" src="/js/UpdatesObservable.js"><\/script>
+        <script type="application/javascript" src="/js/CategoryHistory.js"><\/script>
+        <script type="application/javascript" src="/js/Twitter.js"><\/script>
+        <script type="application/javascript" src="/js/Reddit.js"><\/script>
+        <script type="application/javascript" src="/js/RealTime.js"><\/script>
+        <script type="application/javascript" src="/js/StatisticsGenerator.js"><\/script>
+        <script type="application/javascript" src="/js/OriginalVSSharedStatisticsGenerator.js"><\/script>
+        <script type="application/javascript" src="/js/TwitterOriginalVSSharedStatisticsGenerator.js"><\/script>
+        <script type="application/javascript" src="/js/RedditOriginalVSSharedStatisticsGenerator.js"><\/script>
+`
+                );
+            }
+        </script>
+        <style type="text/css">
+            body > .leftMenu {
+                position: fixed;
+                left:0;
+                top:0;
+                height: 100%;
+                overflow: auto;
+                width: 250px;
+                padding: 10px;
+                box-sizing: border-box;
+                border-right: #555555 1px solid;
+            }
+
+            body.noMenu > .leftMenu {
+                display: none;
+            }
+
+            body > .rightContent {
+                position: relative;
+                left: 250px;
+                right:0;
+                padding: 10px;
+                margin-right: 250px;
+                word-break: break-all;
+                word-wrap: break-word;
+                overflow-x: hidden;
+            }
+
+            body.noMenu > .rightContent {
+                left: 0;
+                margin-right: 0;
+            }
+
+            body > .leftMenu #userName {
+                float: left;
+                font-weight: bolder;
+            }
+            body > .leftMenu #logoutBtn {
+                float: right;
+            }
+            body > .leftMenu ul {
+                padding-left: 15px;
+            }
+
+            ul.horizMenu {
+                list-style-type: none;
+                padding: 0;
+            }
+            ul.horizMenu li {
+                float: left;
+                padding: 5px;
+            }
+        </style>
     </head>
-    <body style="display: table-cell; vertical-align: middle; margin: 2em auto;">
+    <body class="noMenu">
         <noscript>
             <p class="no-js-prompt">
                 Parece que tienes JavaScript desactivado.<br>Por favor, actívalo para poder usar esta aplicación.
             </p>
         </noscript>
 
-        <script src="/js/3rd-party/webcomponents/webcomponents-loader.js"></script>
-        <script src="/js/3rd-party/require.js"></script>
-        <script src="/js/frontend/main.js"></script>
+        <div class="leftMenu">
+            <div style="line-height: 2em; vertical-align: bottom; font-weight: bolder; text-align: center;">My Personal Updates</div>
+            <span id="userName"></span>
+            <a href="#" id="logoutBtn">Salir</a>
+            <div class="clearfix"></div>
+            <ul>
+                <li><a href="/providers.html">Listado de proveedores</a></li>
+                <li><a href="/categories.html">Listado de categorías</a></li>
+                <li><a href="/searchTwitterUserID.html">Buscar ID numérico de usuario de Twitter</a></li>
+            </ul>
+        </div>
+        <div class="rightContent" id="content">
+
+        </div>
+
+        <script type="application/javascript">
+            if(window.pageLoaded === true) {
+                Overlay.show("Error");
+                throw new Exception('Página no encontrada.');
+            } else
+            (async function () {
+                window.pageLoaded = true;
+
+                Overlay.show("Cargando...");
+
+                window.onerror = function(_0,_1,_2,_3, err) {
+                    alert(`Error${typeof err.message === "string" ? (': '+err.message) : ''}\n\nVer consola.`);
+                };
+
+                window.addEventListener('unhandledrejection', function(event) {
+                    alert(`Error${typeof event.reason.message === "string" ? (': '+event.reason.message) : ''}\n\nVer consola.`);
+                    console.error('Unhandled rejection (promise: ', event.promise, ', reason: ', event.reason, ').');
+                });
+
+                if(await Auth.isAuthenticated) {
+                    $(document.body).removeClass("noMenu");
+                    const uData = await Auth.getUserData();
+
+                    if(typeof uData === "object" && typeof uData.username === "string")
+                        $("#userName").text(uData.username);
+                    else
+                        $("#userName").text("undefined");
+                }
+
+                $("#logoutBtn").on("click", function (e) {
+                    e.preventDefault();
+                    Auth.logout();
+                });
+
+                let uri = new URL(window.location);
+                uri.pathname = "/components"+uri.pathname;
+
+                let response;
+                try {
+                    response = await fetch(uri.href);
+                } catch (err) {
+                    throw new Exception('Error al cargar la página.');
+                }
+
+                if(response.ok) {
+                    $("#content").html(await response.text());
+                } else {
+                    Overlay.show("Error");
+                    console.error(response);
+                    throw new Exception('Página no encontrada o error del servidor.');
+                }
+            })();
+        </script>
     </body>
 </html>

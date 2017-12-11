@@ -1,0 +1,9 @@
+<script type="application/javascript">
+(async function () {
+    if(await Auth.isAuthenticated) {
+        window.location.href = (new URL("/categories.html", window.location)).href;
+    } else {
+        window.location.href = (new URL("/login.html", window.location)).href;
+    }
+})();
+</script>

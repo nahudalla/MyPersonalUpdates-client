@@ -1,0 +1,185 @@
+<script type="application/javascript">
+(async function () {
+    await Auth.ensureAuthenticated();
+})();
+</script>
+
+<div id="historyContainer" class="hidden">
+    <h1>Historial: <span id="historyTitle"></span></h1>
+    <span id="historyCantResults">0</span> resultados en esta página. <a href="" id="historyForwardLink" class="hidden">Siguiente página ></a>
+    <table class="tableList">
+        <thead>
+            <tr>
+                <td>Proveedor</td>
+                <td>Fecha</td>
+                <td>Datos</td>
+                <td>Acciones</td>
+            </tr>
+        </thead>
+        <tbody id="historyList">
+            <tr>
+                <td colspan="4">Cargando...</td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+<div id="realTimeContainer" class="hidden">
+    <h1>Tiempo real: <span id="realtimeTitle"></span></h1>
+    Mostrar <input type="number" step="1" min="1" max="200" id="cantToShow" value="50"> actualizaciones.
+    &nbsp;<input type="button" id="startStopBtn" value="Iniciar"><br><br>
+    <span id="realtimeCantResults">0</span> actualizaciones recibidas.
+    <table class="tableList">
+        <thead>
+        <tr>
+            <td>Proveedor</td>
+            <td>Fecha</td>
+            <td>Datos</td>
+            <td>Acciones</td>
+        </tr>
+        </thead>
+        <tbody id="realTimeList">
+        <tr>
+            <td colspan="4">Esperando actualizaciones...</td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+
+<script type="application/javascript">
+(async function () {
+    const params = (new URL(window.location)).searchParams;
+
+    Overlay.show('Cargando...');
+
+    if(params.has('history')) {
+        const container = $('#historyContainer');
+        const title = container.find('#historyTitle');
+
+        container.removeClass('hidden');
+        title.text(params.get('category'));
+
+        const linkForward = $('#historyForwardLink');
+        const cantReults = $('#historyCantResults');
+        const historyList = $('#historyList');
+
+        let from = params.get('from');
+
+        Overlay.show('Cargando...');
+
+        const historyResult = await CategoryHistory.get(from);
+
+        cantReults.text(historyResult.results.length);
+
+        if(historyResult.results.length === 0) {
+            historyList.html('<tr><td colspan="4">No hay resultados.</td></tr>');
+        } else {
+            historyList.html('');
+            if(historyResult.nextFrom) {
+                linkForward.removeClass('hidden');
+                const url = new URL(window.location);
+                url.searchParams.set('from', historyResult.nextFrom);
+                linkForward.prop('href', url.href);
+            } else {
+                linkForward.addClass('hidden');
+            }
+
+            for(let update of historyResult.results) {
+                update = update.renderizable;
+
+                const tr = $(document.createElement('tr'));
+                addTD(tr, await update.provider);
+                addTD(tr, await update.date);
+                addTD(tr, await update.data);
+                addTD(tr, await update.actions);
+                historyList.append(tr);
+            }
+
+            function addTD(tr, value) {
+                const td = $(document.createElement('td'));
+                tr.append(td);
+                if(typeof value === "object" && value instanceof Node)
+                    td.append(value);
+                else td.html(value);
+            }
+        }
+
+        Overlay.hide();
+    } else if(params.has('realtime')) {
+        const container = $('#realTimeContainer');
+        container.removeClass('hidden');
+
+        const title = $('#realtimeTitle');
+        const cantToShowField = $('#cantToShow');
+        const startStopBtn = $('#startStopBtn');
+        const cantResultsSpan = $('#realtimeCantResults');
+        const list = $('#realTimeList');
+
+        title.text(params.get('category'));
+
+        let running = false;
+        let cantResults = 0;
+        let resultsShown = 0;
+
+        startStopBtn.on('click', async function () {
+            if(running) {
+                running = false;
+                cantToShowField.prop('disabled', '');
+                startStopBtn.val('Iniciar');
+
+                RealTime.stop();
+            } else {
+                running = true;
+                cantToShowField.prop('disabled', 'disabled');
+                startStopBtn.val('Parar');
+
+                const maxResultsShown = parseInt(cantToShowField.val());
+
+                if(cantResults === 0)
+                    list.html('');
+
+                RealTime.start(async function (error, update) {
+                    if(error) {
+                        if(!running) return;
+
+                        running = false;
+                        cantToShowField.prop('disabled', '');
+                        startStopBtn.val('Iniciar');
+
+                        RealTime.stop();
+
+                        throw error;
+                    }
+
+                    update = update.renderizable;
+
+                    const tr = $(document.createElement('tr'));
+                    addTD(tr, await update.provider);
+                    addTD(tr, await update.date);
+                    addTD(tr, await update.data);
+                    addTD(tr, await update.actions);
+
+                    resultsShown++;
+
+                    while(resultsShown > maxResultsShown) {
+                        list.children().last().remove();
+                        resultsShown--;
+                    }
+
+                    list.prepend(tr);
+
+                    cantResultsSpan.text(++cantResults);
+                });
+                function addTD(tr, value) {
+                    const td = $(document.createElement('td'));
+                    tr.append(td);
+                    if(typeof value === "object" && value instanceof Node)
+                        td.append(value);
+                    else td.html(value);
+                }
+            }
+        });
+    }
+
+    Overlay.hide();
+})();
+</script>

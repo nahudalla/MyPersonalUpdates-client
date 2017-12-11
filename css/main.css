@@ -63,16 +63,6 @@ video {
 }
 
 /*
- * Remove default fieldset styles.
- */
-
-fieldset {
-    border: 0;
-    margin: 0;
-    padding: 0;
-}
-
-/*
  * Allow only vertical resizing of textareas.
  */
 
@@ -287,4 +277,55 @@ textarea {
     h3 {
         page-break-after: avoid;
     }
+}
+
+html {
+    width: 100%;
+    height: 100%;
+}
+
+body {
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+}
+
+div.centeredContainer {
+    display: table;
+    width: 100%;
+    height: 100%;
+    text-align: center;
+}
+div.centeredContainer > div.content {
+    display: table-cell;
+    vertical-align: middle;
+}
+
+.tableList {
+    width: 100%;
+    border: #000 1px solid;
+}
+.tableList td {
+    padding: 5px;
+}
+.tableList td+td {
+    border-left: #000 1px solid;
+}
+.tableList tr+tr, .tableList thead+tbody {
+    border-top: #000 1px solid;
+}
+.tableList thead {
+    background-color: #555;
+    color: #EEE;
+}
+.tableList tbody tr:nth-child(odd) {
+    background-color: rgb(250, 250, 250);
+}
+.tableList tbody tr:hover {
+    background-color: #EEE;
+}
+
+.tableList thead {
+    text-align: center;
+    font-weight: bolder;
 }

@@ -1,0 +1,65 @@
+<script type="application/javascript">
+(async function () {
+    await Auth.ensureAuthenticated();
+})();
+</script>
+
+<h1>Historial: <span id="catName"></span></h1>
+
+<h2>Restricciones de búsqueda</h2>
+<form id="form">
+    <label>L&iacute;mite por p&aacute;gina: <input type="number" name="limit" step="1" value="50" min="1" max="200"></label><br>
+    <label>Desde: <input type="datetime-local" name="startTimestamp"></label><br>
+    <label>Hasta: <input type="datetime-local" name="endTimestamp"></label><br>
+    Orden por fecha:
+    <select name="order">
+        <option value="asc">Ascendente</option>
+        <option value="desc" selected="selected">Descendente</option>
+    </select><br><br>
+    <input type="submit" name="submitBtn" value="Ver actualizaciones">
+</form>
+
+<script type="application/javascript">
+(async function () {
+    const catNameSpan = $('#catName');
+    const catName = (new URL(window.location)).searchParams.get('category');
+    const visualizer = (new URL(window.location)).searchParams.get('visualizer');
+
+    catNameSpan.text(catName);
+
+    const form = $('#form');
+    const submitBtn = form.find('input[name="submitBtn"]');
+    const _limit = form.find('input[name="limit"]');
+    const _startTimestamp = form.find('input[name="startTimestamp"]');
+    const _endTimestamp = form.find('input[name="endTimestamp"]');
+    const _order = form.find('select[name="order"]');
+
+    form.on('submit', function (e) {
+        e.preventDefault();
+
+        submitBtn.prop('disabled', 'disabled');
+        submitBtn.val('Cargando...');
+
+        const limit = _limit.val();
+        const startTimestamp = (new Date(_startTimestamp.val())).getTime();
+        const endTimestamp = (new Date(_endTimestamp.val())).getTime();
+        const order = _order.val() === 'asc';
+
+        if(Number.isNaN(startTimestamp) || Number.isNaN(endTimestamp)) {
+            submitBtn.prop('disabled', '');
+            submitBtn.val('Ver actualizaciones');
+
+            throw new Exception('Ingrese las fechas "desde" y "hasta".');
+        }
+
+        window.location.href = (new URL(
+            `/visualizations/${visualizer}.html?limit=${limit}`+
+            `&startTimestamp=${startTimestamp}`+
+            `&endTimestamp=${endTimestamp}`+
+            `&order=${order}`+
+            `&history`+
+            `&category=${catName}`
+            , window.location)).href;
+    });
+})();
+</script>

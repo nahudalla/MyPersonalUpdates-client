@@ -1,0 +1,52 @@
+<script type="application/javascript">
+(async function () {
+    await Auth.ensureAuthenticated();
+})();
+</script>
+
+<h1 id="title"></h1>
+<a href="/categories.html"><- Volver a Categorías</a><br><br>
+
+<table class="tableList">
+    <thead>
+        <tr>
+            <td>Nombre</td>
+            <td>Descripcion</td>
+            <td>Tiempo real</td>
+            <td>Histórico</td>
+        </tr>
+    </thead>
+    <tbody id="list">
+        <tr>
+            <td colspan="4">Cargando...</td>
+        </tr>
+    </tbody>
+</table>
+
+<script type="application/javascript">
+(function () {
+    const title = $('#title');
+    const list = $('#list');
+    const url = new URL(window.location);
+    const catName = url.searchParams.get('name');
+
+    title.text(catName);
+
+    list.html('');
+
+    for(let visualizer of Visualizations) {
+        const tr = $(document.createElement('tr'));
+
+        tr.append(`<td>${visualizer.name}</td>`);
+        tr.append(`<td>${visualizer.description}</td>`);
+        tr.append(`<td>${visualizer.realtime?
+            `<a href="/visualizations/${visualizer.id}.html?realtime&category=${catName}" target="_blank">Ver en tiempo real</a>`
+            :'No soportado'}</td>`);
+        tr.append(`<td>${visualizer.history?
+            `<a href="/history.html?visualizer=${visualizer.id}&category=${catName}" target="_blank">Ver históricos</a>`
+            :'No soportado'}</td>`);
+
+        list.append(tr);
+    }
+})();
+</script>

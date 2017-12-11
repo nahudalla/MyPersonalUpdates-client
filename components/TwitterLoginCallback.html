@@ -1,0 +1,21 @@
+<script type="application/javascript">
+(async function () {
+    await Auth.ensureAuthenticated();
+
+    const url = new URL(window.location);
+
+    Overlay.show('Finalizando...')
+
+    if(url.searchParams.has('denied')) {
+        alert('Vinculación con Twitter cancelada.');
+    } else {
+        if(await Twitter.finishUserLogin(url.searchParams.entries())) {
+            alert('Vinculación finalizada.');
+        } else {
+            throw new Exception('No se pudo finalizar la vinculación.');
+        }
+    }
+
+    window.close();
+})();
+</script>

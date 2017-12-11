@@ -1,0 +1,181 @@
+<script src="/js/Chart.bundle.min.js"></script>
+
+<style type="text/css">
+    #pieChartContainer, #barsChartContainer {
+        width: 100%;
+        height: 200px;
+        display: table;
+        text-align: center;
+    }
+
+    #pieChartContainer > span, #barsChartContainer > span {
+        display: table-cell;
+        vertical-align: middle;
+        font-size: 2em;
+        font-weight: bolder;
+    }
+</style>
+
+<h1>Actualizaciones compartidas en <span id="categoryContainer"></span></h1>
+
+<div id="realTimeToolbar" class="hidden">
+    Actualizar cada (milisegundos): <input type="number" style="width: 4em;" min="250" max="50000" step="10" id="updateMillis" value="1000">
+    &nbsp;<input type="button" id="realTimeBtn" value="Iniciar">
+</div>
+<br>
+<span id="cantProcessed">0</span> actualizaciones procesadas.<br><br>
+
+<h3>Gráfico de compartidas versus originales:</h3>
+<canvas id="pieChartContainer"></canvas>
+
+<h3>Usuarios con actualizaciones originales:</h3>
+<table class="tableList">
+    <thead>
+        <tr>
+            <td>Proveedor</td>
+            <td>Usuario</td>
+            <td title="Veces que sus publicaciones fueron compartidas">Compartidas<sup>[?]</sup></td>
+        </tr>
+    </thead>
+    <tbody id="usersList">
+        <tr>
+            <td colspan="3">Esperando...</td>
+        </tr>
+    </tbody>
+</table>
+
+<script type="text/javascript">
+(async function () {
+    await Auth.ensureAuthenticated();
+
+    const cantProcessed = $('#cantProcessed');
+    const categoryContainer = $('#categoryContainer');
+    const realTimeToolbar = $('#realTimeToolbar');
+    const updateMillis = $('#updateMillis');
+    const realTimeBtn = $('#realTimeBtn');
+    const pieChartContainer = $('#pieChartContainer');
+
+    const url = new URL(window.location);
+
+    categoryContainer.text(url.searchParams.get('category'));
+
+    const statisticsGenerator = new OriginalVSSharedStatisticsGenerator();
+
+    if(url.searchParams.has('history')) {
+        pieChartContainer.html('<span>Procesando...</span>');
+
+        statisticsGenerator.addListener(function (data) {
+            cantProcessed.text(data.totalProcessedUpdates);
+
+            const pieData = [
+                { title: 'Originales', amount: data.totalOriginalUpdates},
+                { title: 'Compartidas', amount: data.totalSharedUpdates}
+            ];
+
+            updatePieChart(pieData);
+
+            const usersData = data.providersUsersWithSharedUpdatesInfo;
+
+            updateUsersList(usersData);
+        });
+
+        Overlay.show('Cargando...');
+        await CategoryHistory.get();
+        Overlay.hide();
+    } else if(url.searchParams.has('realtime')) {
+        realTimeToolbar.removeClass('hidden');
+
+        let running = false;
+        let timeout;
+        let millis = 100;
+
+        statisticsGenerator.addListener(function () {
+            if(!timeout && running)
+                timeout = setTimeout(updater, millis);
+        });
+
+        realTimeBtn.on('click', function (e) {
+            if(running) {
+                running = false;
+                updateMillis.prop('disabled', '');
+                realTimeBtn.val('Iniciar');
+                clearTimeout(timeout);
+                timeout = null;
+                RealTime.stop();
+            } else {
+                running = true;
+                updateMillis.prop('disabled', 'disabled');
+                realTimeBtn.val('Parar');
+
+                millis = parseInt(updateMillis.val());
+
+                RealTime.start();
+            }
+        });
+
+        async function updater () {
+            cantProcessed.text(statisticsGenerator.totalProcessedUpdates);
+
+            const pieData = [
+                { title: 'Originales', amount: statisticsGenerator.totalOriginalUpdates},
+                { title: 'Compartidas', amount: statisticsGenerator.totalSharedUpdates}
+            ];
+
+            const usersData = statisticsGenerator.providersUsersWithSharedUpdatesInfo;
+
+            setTimeout(function () {
+                updatePieChart(pieData);
+            }, 0);
+
+            await updateUsersList(usersData);
+
+            clearTimeout(timeout);
+            timeout = null;
+        }
+    }
+
+    let usersList = $('#usersList');
+    async function updateUsersList(usersData) {
+        const fragment = $(document.createDocumentFragment());
+
+        for(let userData of usersData) {
+            const userRow = $(document.createElement('tr'));
+            userRow.append(
+                `<td>${(await userData.provider.info).name}</td>` +
+                `<td>${userData.humanReadableName}</td>` +
+                `<td>${userData.shareCount}</td>`
+            );
+            fragment.append(userRow);
+        }
+
+        usersList.html('');
+        usersList.append(fragment);
+    }
+
+    let pieChart;
+    function updatePieChart(pieData) {
+        if(!pieChart) {
+            pieChart = new Chart(pieChartContainer, {
+                type: 'pie',
+                data: {
+                    datasets: [{
+                        data: [pieData[0].amount, pieData[1].amount],
+                        backgroundColor: ['rgba(66, 134, 244, 1)', 'rgba(244, 166, 65, 1)']
+                    }],
+
+                    // These labels appear in the legend and in the tooltips when hovering different arcs
+                    labels: [pieData[0].title, pieData[1].title]
+                },
+                options: Chart.defaults.pie
+            });
+        } else {
+            pieChart.data.datasets[0].data[0] = pieData[0].amount;
+            pieChart.data.datasets[0].data[1] = pieData[1].amount;
+            pieChart.update({
+                duration: 0,
+                lazy: true
+            });
+        }
+    }
+})();
+</script>

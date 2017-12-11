@@ -1,0 +1,25 @@
+<script type="application/javascript">
+(async function () {
+    await Auth.ensureAuthenticated();
+})();
+</script>
+
+<h1>Datos del estado</h1>
+
+<span id="data"></span>
+
+<script type="application/javascript">
+(function () {
+    const dataContainer = $('#data');
+
+    const urlParams = (new URL(window.location)).searchParams;
+    const data = window.sessionStorage.getItem(`UPDATE_DATA_${urlParams.get('id')}`);
+
+    dataContainer.html(
+        JSON.stringify(
+            JSON.parse(data)
+            , null, 4
+        ).replace(/\n/g, '<br>').replace(/\s/g, '&nbsp;')
+    );
+})();
+</script>

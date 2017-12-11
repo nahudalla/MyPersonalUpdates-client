@@ -1,0 +1,45 @@
+<script type="application/javascript">
+    (async function () {
+        await Auth.ensureAuthenticated();
+    })();
+</script>
+
+<h1>Buscar ID numérico de usuario de Twitter</h1>
+
+<form id="form">
+    <input type="text" id="username" placeholder="Nombre de usuario">
+    <input type="submit" value="Buscar" id="searchBtn">
+</form>
+<br>
+ID de usuario en Twitter: <input type="text" disabled="disabled" id="result">
+
+<script type="application/javascript">
+(function () {
+    const userField = $('#username');
+    const searchBtn = $('#searchBtn');
+    const resultField = $('#result');
+    const form = $('#form');
+
+    form.on('submit', function (e) {
+        e.preventDefault();
+
+        userField.prop('disabled', 'disabled');
+        searchBtn.prop('disabled', 'disabled');
+        searchBtn.prop('value', 'Buscando...');
+
+        (async function() {
+            try {
+                resultField.prop('value',
+                    await Twitter.findUserIDByScreenName(userField.val())
+                );
+            }catch (e) {
+                throw e;
+            } finally {
+                userField.prop('disabled', '');
+                searchBtn.prop('disabled', '');
+                searchBtn.prop('value', 'Buscar');
+            }
+        })();
+    });
+})();
+</script>
