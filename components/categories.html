@@ -32,8 +32,7 @@
                 if(!(Server.responseOK(res)))
                     throw new Exception('Error al eliminar.');
 
-                // TODO: arreglar error al eliminar categoría aca
-                categoriesList.remove(elem);
+                elem.remove();
             }
         });
         categoriesList.append(elem);

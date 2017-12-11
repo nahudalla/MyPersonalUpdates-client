@@ -1,6 +1,5 @@
 (function () {
     class RedditUpdate extends Update {
-        // TODO: arreglar!
         constructor(data) {
             super(data);
         }
